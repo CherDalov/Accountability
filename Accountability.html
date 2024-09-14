@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accountability Tracker</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+
+    <!-- Swiper.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+
+    <!-- Custom CSS -->
+    <style>
+        /* Variables */
+        :root {
+            --background-color: #1e1e2f;
+            --primary-accent: #ff6f61;
+            --secondary-accent: #6c5ce7;
+            --today-button-color: #ff6f61; /* Matches add-all-days button style */
+            --pale-blue: #a3c9f1; /* Pale blue for text */
+            --text-color: var(--pale-blue);
+            --task-bg-color: #2e2e3e;
+            --task-hover-color: #3e3e5e;
+            --task-completed-color: #90ee90; /* Light green for completed tasks */
+            --column-border-color: #4b4b4b; /* Dark gray for column edges */
+        }
+
+        /* Global Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--pale-blue); /* Pale blue for headers */
+            font-family: 'Montserrat', sans-serif; /* Use Montserrat for headings */
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Task Input Section */
+        .task-list {
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .add-task {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .add-task input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            margin-right: 10px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .add-task input[type="text"]:focus {
+            border-color: var(--primary-accent);
+            background-color: #444;
+        }
+
+        .add-task button {
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--primary-accent);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .add-task button:hover {
+            background-color: #e65a50;
+            transform: translateY(-3px);
+        }
+
+        /* Add to All Days Button */
+        .add-task .add-all-days-btn {
+            border: 2px solid var(--primary-accent);
+            color: var(--primary-accent);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: transparent; /* Transparent until activated */
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .add-task .add-all-days-btn.active {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+
+        /* Swiper Styles */
+        .swiper-container {
+            width: 100%;
+            padding: 10px 0;
+        }
+
+        .swiper-wrapper-container {
+            overflow: hidden;
+            width: calc(100% - 100px); /* Adjust to fit arrow buttons */
+        }
+
+        .swiper-slide {
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 5px;
+            min-height: 200px;
+            word-break: break-word; /* Full words shown, wrap to next line */
+            text-align: center;
+            width: calc((100% - 10px) / 5); /* Adjust width for 5 slides */
+            box-sizing: border-box;
+            border: 2px solid var(--column-border-color); /* Dark gray border for columns */
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .swiper-slide.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
+        }
+
+        /* Day Button */
+        .day-button {
+            background-color: transparent;
+            color: var(--primary-accent);
+            border: 2px solid var(--primary-accent); /* Transparent until activated */
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            display: inline-block;
+            font-family: 'Montserrat', sans-serif; /* Improved font choice */
+        }
+
+        .day-button.today {
+            background-color: var(--today-button-color); /* Same styling as add-all-days button */
+            color: #fff;
+        }
+
+        .day-button.active {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+
+        /* Task Styles */
+        .task {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: var(--task-bg-color);
+            transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+            word-wrap: break-word;
+            white-space: normal;
+            cursor: pointer;
+            opacity: 0;
+        }
+
+        .task.show {
+            opacity: 1;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .task:hover {
+            background-color: var(--task-hover-color);
+            transform: translateY(-3px);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .task span {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .task.completed {
+            background-color: var(--task-completed-color);
+            color: #000;
+            text-decoration: line-through;
+        }
+
+        .task .delete-btn {
+            margin-left: auto;
+            color: var(--primary-accent);
+            cursor: pointer;
+            font-size: 0.8em; /* Smaller trash bin icon */
+            border: 1px solid var(--primary-accent);
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .task .delete-btn:hover {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+
+        /* Date Container */
+        .date-container {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--pale-blue); /* Pale blue for date labels */
+        }
+
+        /* Arrow Buttons */
+        .arrow-button {
+            background-color: var(--primary-accent);
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .arrow-button:hover {
+            background-color: var(--secondary-accent);
+            transform: scale(1.1);
+        }
+
+        /* Scroll Container */
+        .scroll-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            width: 100%;
+            overflow: hidden; /* Hide overflow */
+        }
+
+        /* Charts */
+        .chart-container {
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 40px;
+        }
+
+        .chart-container h2 {
+            color: var(--pale-blue); /* Pale blue for chart titles */
+        }
+
+        canvas {
+            background-color: var(--task-bg-color);
+            border-radius: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .scroll-container .arrow-button {
+                display: none;
+            }
+
+            .swiper-wrapper-container {
+                width: 100%;
+            }
+
+            .swiper-slide {
+                width: calc(100% - 20px); /* Full width minus paddings */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Accountability Tracker</h1>
+    <div class="container">
+
+        <!-- Task Input Section -->
+        <div class="task-list">
+            <h2>Add Task</h2>
+            <div class="add-task">
+                <input type="text" id="newTask" placeholder="Enter new task">
+                <button onclick="addTask()">Add Task</button>
+                <!-- Add to All Days Button -->
+                <button id="addAllDaysBtn" class="add-all-days-btn" onclick="toggleAddToAllDays()">Add to all days</button>
+            </div>
+        </div>
+
+        <!-- Swiper Container -->
+        <div class="scroll-container">
+            <button class="arrow-button" onclick="swiper.slidePrev()"><i class="fas fa-chevron-left"></i></button>
+            <div class="swiper-wrapper-container">
+                <div class="swiper-container">
+                    <div class="swiper-wrapper" id="tasks-container">
+                        <!-- Task columns will be generated here -->
+                    </div>
+                </div>
+            </div>
+            <button class="arrow-button" onclick="swiper.slideNext()"><i class="fas fa-chevron-right"></i></button>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="chart-container">
+            <h2>Number of Tasks Completed</h2>
+            <canvas id="tasksCompletedChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h2>Percentage of Tasks Completed</h2>
+            <canvas id="tasksPercentageChart"></canvas>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="feedback">
+            <h2>We value your feedback!</h2>
+            <textarea id="feedbackText" placeholder="Share your thoughts..."></textarea>
+            <button onclick="submitFeedback()">Submit</button>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <!-- Swiper.js -->
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        let addToAllDays = false; // Toggle state for adding tasks to all days
+
+        // Toggle Add to All Days Button
+        function toggleAddToAllDays() {
+            const button = document.getElementById('addAllDaysBtn');
+            addToAllDays = !addToAllDays;
+            button.classList.toggle('active', addToAllDays);
+        }
+
+        // Initialize Swiper
+        var swiper = new Swiper('.swiper-container', {
+            slidesPerView: 5, // Display 5 slides at once
+            spaceBetween: 0, // No space between columns
+            centeredSlides: true,
+            initialSlide: new Date().getDate() - 1,
+            freeMode: false,
+            speed: 200,
+        });
+
+        // Custom Mousewheel Scroll Handling for Days Columns
+        const tasksContainer = document.getElementById('tasks-container');
+        tasksContainer.addEventListener('wheel', function(event) {
+            event.preventDefault();
+            if (event.deltaY > 0) {
+                swiper.slideNext();
+            } else {
+                swiper.slidePrev();
+            }
+        });
+
+        // Initialize task lists for each day
+        let tasks = {};
+        const selectedDays = [];
+        let taskCompletionData = [];
+        let taskPercentageData = [];
+        let dateLabels = [];
+        let displayedDates = [];
+
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+        function initializeMonthData() {
+            dateLabels = [];
+            taskCompletionData = Array(daysInMonth).fill(0);
+            taskPercentageData = Array(daysInMonth).fill(0);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const formattedDate = date.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+                dateLabels.push(formattedDate);
+                tasks[day] = [];
+                displayedDates.push(day);
+            }
+        }
+
+        // Display all days of the month
+        function displayAllDays() {
+            const tasksContainer = document.getElementById('tasks-container');
+            tasksContainer.innerHTML = '';
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const weekday = weekdayNames[date.getDay()];
+                const formattedDate = date.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+
+                const taskColumn = document.createElement('div');
+                taskColumn.classList.add('swiper-slide');
+                taskColumn.dataset.dayIndex = day - 1;
+
+                const dateContainer = document.createElement('div');
+                dateContainer.classList.add('date-container');
+                dateContainer.innerText = formattedDate;
+
+                const dayButton = document.createElement('button');
+                dayButton.classList.add('day-button');
+                dayButton.innerText = weekday;
+                dayButton.id = `button-${day - 1}`;
+                dayButton.onclick = () => toggleDay(day - 1);
+
+                const tasksList = document.createElement('div');
+                tasksList.id = `tasks-${day - 1}`;
+
+                taskColumn.appendChild(dateContainer);
+                taskColumn.appendChild(dayButton);
+                taskColumn.appendChild(tasksList);
+                tasksContainer.appendChild(taskColumn);
+
+                if (day === today.getDate()) {
+                    dayButton.classList.add('today');
+                }
+            }
+
+            centerOnToday();
+        }
+
+        function centerOnToday() {
+            const todayIndex = today.getDate() - 1;
+            swiper.slideTo(todayIndex, 0);
+        }
+
+        initializeMonthData();
+        displayAllDays();
+
+        // Toggle day selection
+        function toggleDay(dayIndex) {
+            const button = document.getElementById(`button-${dayIndex}`);
+            const taskColumn = button.parentElement;
+
+            if (selectedDays.includes(dayIndex)) {
+                selectedDays.splice(selectedDays.indexOf(dayIndex), 1);
+                button.classList.remove("active");
+                taskColumn.classList.remove("selected");
+            } else {
+                selectedDays.push(dayIndex);
+                button.classList.add("active");
+                taskColumn.classList.add("selected");
+            }
+        }
+
+        // Add a new task for the selected days
+        function addTask() {
+            const taskText = document.getElementById('newTask').value.trim();
+
+            if (taskText) {
+                if (addToAllDays) {
+                    // Add task to all days
+                    for (let dayIndex = 0; dayIndex < displayedDates.length; dayIndex++) {
+                        addTaskToDay(dayIndex, taskText);
+                    }
+                } else if (selectedDays.length === 0) {
+                    alert('Please select at least one day first.');
+                    return;
+                } else {
+                    // Add task to selected days
+                    selectedDays.forEach(dayIndex => {
+                        addTaskToDay(dayIndex, taskText);
+                    });
+                }
+
+                document.getElementById('newTask').value = ''; // Clear input
+            }
+        }
+
+        // Function to add a task to a specific day
+        function addTaskToDay(dayIndex, taskText) {
+            const actualDay = displayedDates[dayIndex];
+
+            // Send task to the backend
+            fetch('http://localhost:3000/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ task: taskText, day: actualDay })
+            })
+            .then(response => response.json())
+            .then(newTask => {
+                // Add task to the UI after receiving it from the server
+                if (!tasks[actualDay]) {
+                    tasks[actualDay] = [];
+                }
+                tasks[actualDay].push(newTask);
+                renderTasks(dayIndex);
+                updateCharts();
+
+                Toastify({
+                    text: "Task added successfully!",
+                    backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                    duration: 3000
+                }).showToast();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Render tasks for the selected day in its column
+        function renderTasks(dayIndex) {
+            const actualDay = displayedDates[dayIndex];
+            const taskContainer = document.getElementById(`tasks-${dayIndex}`);
+            taskContainer.innerHTML = '';
+
+            if (!tasks[actualDay]) {
+                tasks[actualDay] = [];
+            }
+
+            tasks[actualDay].forEach((task, index) => {
+                const taskDiv = document.createElement('div');
+                taskDiv.classList.add('task');
+                if (task.completed) taskDiv.classList.add('completed');
+                taskDiv.classList.add('show');
+                taskDiv.onclick = () => toggleTask(actualDay, index);
+
+                const span = document.createElement('span');
+                span.innerText = task.text;
+
+                const deleteBtn = document.createElement('i');
+                deleteBtn.classList.add('fas', 'fa-trash', 'delete-btn');
+                deleteBtn.onclick = (e) => deleteTask(e, actualDay, index);
+
+                taskDiv.appendChild(span);
+                taskDiv.appendChild(deleteBtn);
+
+                taskContainer.appendChild(taskDiv);
+            });
+        }
+
+        // Toggle task completion
+        function toggleTask(actualDay, taskIndex) {
+            // Send PUT request to backend to toggle completion
+            fetch(`http://localhost:3000/tasks/${actualDay}/${taskIndex + 1}`, {
+                method: 'PUT'
+            })
+            .then(response => response.json())
+            .then(updatedTask => {
+                // Update task completion status in the frontend
+                if (!tasks[actualDay]) {
+                    tasks[actualDay] = [];
+                }
+                const task = tasks[actualDay][taskIndex];
+                task.completed = updatedTask.completed;
+                const dayIndex = displayedDates.indexOf(parseInt(actualDay));
+                renderTasks(dayIndex);
+                updateCharts();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Delete a task
+        function deleteTask(event, actualDay, taskIndex) {
+            event.stopPropagation();
+
+            // Send DELETE request to backend
+            fetch(`http://localhost:3000/tasks/${actualDay}/${taskIndex + 1}`, {
+                method: 'DELETE'
+            })
+            .then(() => {
+                tasks[actualDay].splice(taskIndex, 1);
+                const dayIndex = displayedDates.indexOf(parseInt(actualDay));
+                renderTasks(dayIndex);
+                updateCharts();
+
+                Toastify({
+                    text: "Task deleted successfully!",
+                    backgroundColor: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                    duration: 3000
+                }).showToast();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Update the charts
+        function updateCharts() {
+            const completedTasksPerDay = [];
+            const totalTasksPerDay = [];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const tasksForDay = tasks[day] || [];
+                const completedTasks = tasksForDay.filter(task => task.completed).length;
+                completedTasksPerDay.push(completedTasks);
+                totalTasksPerDay.push(tasksForDay.length);
+            }
+
+            taskCompletionData = completedTasksPerDay;
+
+            taskPercentageData = totalTasksPerDay.map((total, i) => {
+                if (total > 0) {
+                    return (taskCompletionData[i] / total) * 100;
+                } else {
+                    return 0;
+                }
+            });
+
+            tasksCompletedChart.data.datasets[0].data = taskCompletionData;
+            tasksPercentageChart.data.datasets[0].data = taskPercentageData;
+
+            tasksCompletedChart.update();
+            tasksPercentageChart.update();
+        }
+
+        // Create Charts
+        const ctxTasksCompleted = document.getElementById('tasksCompletedChart').getContext('2d');
+        const ctxTasksPercentage = document.getElementById('tasksPercentageChart').getContext('2d');
+
+        // Gradient for tasks completed chart
+        const gradientTasksCompleted = ctxTasksCompleted.createLinearGradient(0, 0, 0, 400);
+        gradientTasksCompleted.addColorStop(0, 'rgba(255, 99, 132, 0.5)');
+        gradientTasksCompleted.addColorStop(1, 'rgba(255, 99, 132, 0)');
+
+        const tasksCompletedChart = new Chart(ctxTasksCompleted, {
+            type: 'bar',
+            data: {
+                labels: dateLabels,
+                datasets: [{
+                    label: 'Tasks Completed',
+                    data: taskCompletionData,
+                    backgroundColor: gradientTasksCompleted,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    hoverBackgroundColor: 'rgba(255, 99, 132, 0.7)',
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff'
+                    }
+                }
+            }
+        });
+
+        // Gradient for tasks percentage chart
+        const gradientTasksPercentage = ctxTasksPercentage.createLinearGradient(0, 0, 0, 400);
+        gradientTasksPercentage.addColorStop(0, 'rgba(54, 162, 235, 0.5)');
+        gradientTasksPercentage.addColorStop(1, 'rgba(54, 162, 235, 0)');
+
+        const tasksPercentageChart = new Chart(ctxTasksPercentage, {
+            type: 'bar',
+            data: {
+                labels: dateLabels,
+                datasets: [{
+                    label: 'Percentage of Tasks Completed',
+                    data: taskPercentageData,
+                    backgroundColor: gradientTasksPercentage,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    hoverBackgroundColor: 'rgba(54, 162, 235, 0.7)',
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                },
+                plugins: {
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff'
+                    }
+                }
+            }
+        });
+
+        // Submit Feedback
+        function submitFeedback() {
+            const feedback = document.getElementById('feedbackText').value.trim();
+            if (feedback) {
+                // You can send the feedback to your server here
+                alert('Thank you for your feedback!');
+                document.getElementById('feedbackText').value = '';
+            }
+        }
+
+        // Fetch initial tasks from the server
+        function fetchInitialTasks() {
+            fetch('http://localhost:3000/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    tasks = data;
+                    for (let day in tasks) {
+                        const dayIndex = displayedDates.indexOf(parseInt(day));
+                        if (dayIndex !== -1) {
+                            renderTasks(dayIndex);
+                        }
+                    }
+                    updateCharts();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        fetchInitialTasks();
+
+    </script>
+</body>
+</html>
