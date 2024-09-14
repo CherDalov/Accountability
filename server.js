@@ -13,6 +13,14 @@ const dataFilePath = path.join(__dirname, 'tasks.json');
 app.use(express.json());
 app.use(cors()); // Allow requests from any origin (CORS policy)
 
+// Serve static files directly from the root folder
+app.use(express.static(path.join(__dirname)));
+
+// Default route to serve Maine.html (or any main HTML file in the root)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Maine.html'));  // Change 'Maine.html' to your actual filename
+});
+
 // In-memory storage for tasks
 let tasks = {};
 
