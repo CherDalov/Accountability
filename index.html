@@ -1,13 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- [Existing head content] -->
-    <!-- ... -->
-    <!-- Ensure all your CSS and JS references are correct -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accountability Tracker</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <!-- Swiper.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+
+    <!-- Custom CSS -->
+    <style>
+        /* Root Variables for Dark Mode */
+        :root {
+            --background-color: #1e1e2f;
+            --primary-color: #ff6f61;
+            --secondary-color: #6c5ce7;
+            --text-color: #a3c9f1; /* Pale blue */
+            --task-bg-color: #2e2e3e;
+            --task-hover-color: #3e3e5e;
+            --task-completed-color: #90ee90; /* Light green for completed tasks */
+            --border-color: #4b4b4b; /* Border color for elements */
+        }
+
+        /* Global Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--text-color);
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Task Input Section */
+        .task-list {
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .add-task {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .add-task input[type="text"] {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            margin-right: 10px;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .add-task input[type="text"]:focus {
+            border-color: var(--primary-color);
+            background-color: #444;
+        }
+
+        .add-task button {
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--primary-color);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .add-task button:hover {
+            background-color: #e65a50;
+            transform: translateY(-3px);
+        }
+
+        /* Task Styles */
+        .task {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: var(--task-bg-color);
+            transition: background-color 0.3s, opacity 0.3s, transform 0.3s;
+            word-wrap: break-word;
+            white-space: normal;
+            cursor: pointer;
+            opacity: 0;
+        }
+
+        .task.show {
+            opacity: 1;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .task:hover {
+            background-color: var(--task-hover-color);
+            transform: translateY(-3px);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .task span {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .task.completed {
+            background-color: var(--task-completed-color);
+            color: #000;
+            text-decoration: line-through;
+        }
+
+        .task .delete-btn {
+            margin-left: auto;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.8em;
+            border: 1px solid var(--primary-color);
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .task .delete-btn:hover {
+            background-color: var(--primary-color);
+            color: #fff;
+        }
+
+        /* Charts */
+        .chart-container {
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 40px;
+        }
+
+        .chart-container h2 {
+            color: var(--text-color); /* Pale blue for chart titles */
+        }
+
+        canvas {
+            background-color: var(--task-bg-color);
+            border-radius: 10px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .task {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <!-- Login and Registration Forms -->
+    <!-- Authentication Section -->
     <div id="authContainer">
         <h1>Accountability Tracker</h1>
         <div id="authForms">
@@ -33,29 +217,18 @@
         <h1>Accountability Tracker</h1>
         <button onclick="logout()" style="float: right;">Logout</button>
         <div class="container">
-            <!-- [Existing application content] -->
             <!-- Task Input Section -->
             <div class="task-list">
                 <h2>Add Task</h2>
                 <div class="add-task">
                     <input type="text" id="newTask" placeholder="Enter new task">
                     <button onclick="addTask()">Add Task</button>
-                    <!-- Add to All Days Button -->
-                    <button id="addAllDaysBtn" class="add-all-days-btn" onclick="toggleAddToAllDays()">Add to all days</button>
                 </div>
             </div>
 
-            <!-- Swiper Container -->
-            <div class="scroll-container">
-                <button class="arrow-button" onclick="swiper.slidePrev()"><i class="fas fa-chevron-left"></i></button>
-                <div class="swiper-wrapper-container">
-                    <div class="swiper-container">
-                        <div class="swiper-wrapper" id="tasks-container">
-                            <!-- Task columns will be generated here -->
-                        </div>
-                    </div>
-                </div>
-                <button class="arrow-button" onclick="swiper.slideNext()"><i class="fas fa-chevron-right"></i></button>
+            <!-- Task List Section -->
+            <div id="taskList" class="task-list">
+                <!-- Task items will be dynamically generated here -->
             </div>
 
             <!-- Charts Section -->
@@ -67,19 +240,10 @@
                 <h2>Percentage of Tasks Completed</h2>
                 <canvas id="tasksPercentageChart"></canvas>
             </div>
-
-            <!-- Feedback Section -->
-            <div class="feedback">
-                <h2>We value your feedback!</h2>
-                <textarea id="feedbackText" placeholder="Share your thoughts..."></textarea>
-                <button onclick="submitFeedback()">Submit</button>
-            </div>
-
         </div>
     </div>
 
     <!-- Scripts -->
-    <!-- [Existing scripts] -->
     <!-- Swiper.js -->
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 
@@ -134,7 +298,6 @@
             })
             .then(response => {
                 if (response.ok) {
-                    // Hide auth container and show app container
                     document.getElementById('authContainer').style.display = 'none';
                     document.getElementById('appContainer').style.display = 'block';
                     initializeApp();
@@ -148,11 +311,8 @@
         }
 
         function logout() {
-            fetch('/logout', {
-                method: 'POST'
-            })
+            fetch('/logout', { method: 'POST' })
             .then(() => {
-                // Clear data and show login form
                 document.getElementById('appContainer').style.display = 'none';
                 document.getElementById('authContainer').style.display = 'block';
                 document.getElementById('loginForm').style.display = 'block';
@@ -161,76 +321,81 @@
             .catch(error => console.error('Error:', error));
         }
 
-        // Application Initialization
+        // App Initialization
         function initializeApp() {
-            // [Existing initialization code]
-            // Initialize Swiper
-            swiper = new Swiper('.swiper-container', {
-                slidesPerView: 5, // Display 5 slides at once
-                spaceBetween: 0, // No space between columns
-                centeredSlides: true,
-                initialSlide: new Date().getDate() - 1,
-                freeMode: false,
-                speed: 200,
-            });
-
-            initializeMonthData();
-            displayAllDays();
+            // Initialize tasks, charts, etc.
             fetchInitialTasks();
         }
 
-        // [Rest of your existing JavaScript code]
-        // Ensure that all fetch requests use relative URLs and handle authentication appropriately.
-
-        // Modify fetch requests to include credentials
-        function fetchWithCredentials(url, options = {}) {
-            options.credentials = 'include'; // Include cookies in requests
-            return fetch(url, options);
-        }
-
-        // Update fetch requests to use fetchWithCredentials
-        // Example: Fetch initial tasks
+        // Fetch Initial Tasks
         function fetchInitialTasks() {
-            fetchWithCredentials('/tasks')
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else if (response.status === 401) {
-                        // User is not authenticated, show login form
-                        document.getElementById('authContainer').style.display = 'block';
-                        document.getElementById('appContainer').style.display = 'none';
-                    } else {
-                        throw new Error('Failed to fetch tasks.');
-                    }
-                })
-                .then(data => {
-                    tasks = data;
-                    for (let day in tasks) {
-                        const dayIndex = displayedDates.indexOf(parseInt(day));
-                        if (dayIndex !== -1) {
-                            renderTasks(dayIndex);
-                        }
-                    }
-                    updateCharts();
-                })
-                .catch(error => console.error('Error:', error));
+            fetch('/tasks', { credentials: 'include' })
+            .then(response => response.json())
+            .then(data => {
+                // Render tasks
+                renderTasks(data);
+                updateCharts();
+            })
+            .catch(error => console.error('Error:', error));
         }
 
-        // Update other fetch requests similarly to include credentials and handle 401 Unauthorized responses.
+        function renderTasks(tasks) {
+            const taskList = document.getElementById('taskList');
+            taskList.innerHTML = '';
+            for (const day in tasks) {
+                tasks[day].forEach(task => {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.classList.add('task', 'show');
+                    if (task.completed) taskDiv.classList.add('completed');
+                    taskDiv.innerHTML = `<span>${task.text}</span>
+                                         <i class="fas fa-trash delete-btn" onclick="deleteTask(${day}, ${task.id})"></i>`;
+                    taskList.appendChild(taskDiv);
+                });
+            }
+        }
 
-        // [Ensure all other functions are updated accordingly]
+        // Add New Task
+        function addTask() {
+            const taskText = document.getElementById('newTask').value.trim();
+            if (!taskText) return;
 
-        // Initialize the application if the user is already logged in
+            fetch('/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: taskText, day: new Date().getDate() })
+            })
+            .then(response => response.json())
+            .then(newTask => {
+                renderTasks({ [new Date().getDate()]: [newTask] });
+            })
+            .catch(error => console.error('Error:', error));
+
+            document.getElementById('newTask').value = ''; // Clear input
+        }
+
+        // Delete Task
+        function deleteTask(day, id) {
+            fetch(`/tasks/${day}/${id}`, { method: 'DELETE' })
+            .then(() => {
+                fetchInitialTasks();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Update Charts (Example chart update logic)
+        function updateCharts() {
+            // Example chart update logic
+        }
+
+        // Initialize the app if the user is already logged in
         window.onload = function() {
-            fetchWithCredentials('/tasks')
+            fetch('/tasks', { credentials: 'include' })
                 .then(response => {
                     if (response.ok) {
-                        // User is authenticated
                         document.getElementById('authContainer').style.display = 'none';
                         document.getElementById('appContainer').style.display = 'block';
                         initializeApp();
                     } else {
-                        // Show login form
                         document.getElementById('authContainer').style.display = 'block';
                         document.getElementById('appContainer').style.display = 'none';
                     }
