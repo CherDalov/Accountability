@@ -62,6 +62,12 @@
             margin-bottom: 30px;
         }
 
+        .add-task {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         .add-task input[type="text"] {
             flex: 1;
             min-width: 200px;
@@ -141,6 +147,67 @@
             background-color: var(--primary-accent);
             color: #fff;
         }
+
+        /* Swiper Styles */
+        .swiper-container {
+            width: 100%;
+            padding-top: 20px;
+            padding-bottom: 50px;
+        }
+
+        .swiper-slide {
+            background-color: var(--task-bg-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .swiper-slide h3 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .swiper-slide ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .swiper-slide li {
+            padding: 10px;
+            border-bottom: 1px solid var(--column-border-color);
+            cursor: pointer;
+        }
+
+        .swiper-slide li:hover {
+            background-color: var(--task-hover-color);
+        }
+
+        .chart-container {
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .scroll-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .arrow-button {
+            background-color: transparent;
+            border: none;
+            color: var(--primary-accent);
+            font-size: 2em;
+            cursor: pointer;
+        }
+
+        .swiper-wrapper-container {
+            width: 80%;
+        }
+
     </style>
 </head>
 <body>
@@ -214,6 +281,7 @@
 
     <script>
         let isAuthenticated = false; // Track authentication status
+        let swiper;
 
         // Show Register Form
         function showRegisterForm() {
@@ -286,6 +354,166 @@
         function showApp() {
             document.getElementById('authContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
+            initializeSwiper();
+            loadTasks();
+        }
+
+        // Initialize Swiper
+        function initializeSwiper() {
+            swiper = new Swiper('.swiper-container', {
+                slidesPerView: 1,
+                spaceBetween: 10,
+                centeredSlides: true,
+            });
+        }
+
+        // Add Task Function
+        function addTask() {
+            const taskText = document.getElementById('newTask').value.trim();
+            if (!taskText) {
+                alert('Please enter a task.');
+                return;
+            }
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+            fetch('/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ task: taskText, day: today })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('newTask').value = '';
+                loadTasks();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Load Tasks Function
+        function loadTasks() {
+            fetch('/tasks')
+            .then(response => response.json())
+            .then(data => {
+                renderTasks(data);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Render Tasks Function
+        function renderTasks(tasksData) {
+            const tasksContainer = document.getElementById('tasks-container');
+            tasksContainer.innerHTML = ''; // Clear existing tasks
+
+            const days = Object.keys(tasksData).sort(); // Get days and sort them
+            days.forEach(day => {
+                const dayTasks = tasksData[day];
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+
+                const dayTitle = document.createElement('h3');
+                dayTitle.textContent = day;
+                slide.appendChild(dayTitle);
+
+                const taskList = document.createElement('ul');
+                dayTasks.forEach(task => {
+                    const taskItem = document.createElement('li');
+                    taskItem.textContent = task.text;
+                    taskItem.style.textDecoration = task.completed ? 'line-through' : 'none';
+                    taskItem.addEventListener('click', () => {
+                        toggleTaskCompletion(day, task.id, !task.completed);
+                    });
+                    taskList.appendChild(taskItem);
+                });
+                slide.appendChild(taskList);
+                tasksContainer.appendChild(slide);
+            });
+
+            swiper.update(); // Update Swiper after modifying slides
+
+            // Update charts
+            updateCharts(tasksData);
+        }
+
+        // Toggle Task Completion
+        function toggleTaskCompletion(day, taskId, completed) {
+            fetch(`/tasks/${day}/${taskId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ completed })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadTasks();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Update Charts
+        function updateCharts(tasksData) {
+            // Number of Tasks Completed Chart
+            const days = Object.keys(tasksData).sort();
+            const tasksCompleted = days.map(day => {
+                const dayTasks = tasksData[day];
+                return dayTasks.filter(task => task.completed).length;
+            });
+
+            const tasksTotal = days.map(day => {
+                const dayTasks = tasksData[day];
+                return dayTasks.length;
+            });
+
+            // Update Number of Tasks Completed Chart
+            if (window.tasksCompletedChart) {
+                window.tasksCompletedChart.data.labels = days;
+                window.tasksCompletedChart.data.datasets[0].data = tasksCompleted;
+                window.tasksCompletedChart.update();
+            } else {
+                const ctx1 = document.getElementById('tasksCompletedChart').getContext('2d');
+                window.tasksCompletedChart = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: days,
+                        datasets: [{
+                            label: 'Tasks Completed',
+                            data: tasksCompleted,
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            // Update Percentage of Tasks Completed Chart
+            const tasksPercentage = tasksTotal.map((total, index) => {
+                return total > 0 ? (tasksCompleted[index] / total * 100).toFixed(2) : 0;
+            });
+
+            if (window.tasksPercentageChart) {
+                window.tasksPercentageChart.data.labels = days;
+                window.tasksPercentageChart.data.datasets[0].data = tasksPercentage;
+                window.tasksPercentageChart.update();
+            } else {
+                const ctx2 = document.getElementById('tasksPercentageChart').getContext('2d');
+                window.tasksPercentageChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: days,
+                        datasets: [{
+                            label: 'Percentage Completed (%)',
+                            data: tasksPercentage,
+                            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
         }
 
         // On Page Load, Check if User is Authenticated
@@ -302,7 +530,6 @@
             .catch(error => console.error('Error:', error));
         };
 
-        // Remaining task-related functionality stays the same as your original implementation
     </script>
 </body>
 </html>
