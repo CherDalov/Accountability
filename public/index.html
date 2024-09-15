@@ -1,3 +1,4 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +21,7 @@
 
     <!-- Custom CSS -->
     <style>
-        /* Your existing CSS styles */
+        /* Custom CSS */
         :root {
             --background-color: #1e1e2f;
             --primary-accent: #ff6f61;
@@ -39,7 +40,7 @@
             background-color: var(--background-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             box-sizing: border-box;
         }
 
@@ -52,46 +53,13 @@
         .container {
             max-width: 1000px;
             margin: 0 auto;
-        }
-
-        /* Task Input Section */
-        .task-list {
-            background-color: var(--task-bg-color);
             padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
         }
 
-        .add-task {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .add-task input[type="text"] {
-            flex: 1;
-            min-width: 200px;
-            padding: 10px;
-            border: 1px solid #444;
-            border-radius: 5px;
-            background-color: #333;
-            color: #fff;
-            margin-right: 10px;
-        }
-
-        .add-task button {
-            padding: 10px 20px;
-            border: none;
-            background-color: var(--primary-accent);
-            color: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        /* Login Section */
+        /* Centering the login/register forms */
         #authContainer {
             max-width: 400px;
-            margin: 0 auto;
+            margin: 50px auto;
             background-color: var(--task-bg-color);
             padding: 20px;
             border-radius: 10px;
@@ -100,6 +68,7 @@
 
         #authContainer h1 {
             margin-bottom: 20px;
+            text-align: center;
         }
 
         #authForms input[type="text"],
@@ -111,6 +80,7 @@
             border-radius: 5px;
             background-color: #333;
             color: #fff;
+            box-sizing: border-box;
         }
 
         #authForms button {
@@ -141,11 +111,57 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            margin: 20px;
         }
 
         .logout-button:hover {
             background-color: var(--primary-accent);
             color: #fff;
+        }
+
+        /* Task Input Section */
+        .task-list {
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .add-task {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .add-task input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .add-task select {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .add-task button {
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--primary-accent);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         /* Swiper Styles */
@@ -160,6 +176,8 @@
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 20px;
+            min-width: 200px;
+            box-sizing: border-box;
         }
 
         .swiper-slide h3 {
@@ -170,6 +188,7 @@
         .swiper-slide ul {
             list-style-type: none;
             padding: 0;
+            margin: 0;
         }
 
         .swiper-slide li {
@@ -180,6 +199,11 @@
 
         .swiper-slide li:hover {
             background-color: var(--task-hover-color);
+        }
+
+        .swiper-slide li.completed {
+            text-decoration: line-through;
+            color: var(--task-completed-color);
         }
 
         .chart-container {
@@ -206,6 +230,13 @@
 
         .swiper-wrapper-container {
             width: 80%;
+        }
+
+        /* Adjusting Swiper slides to show 5 at a time */
+        @media (min-width: 768px) {
+            .swiper-slide {
+                width: 200px !important;
+            }
         }
 
     </style>
@@ -245,6 +276,9 @@
                 <h2>Add Task</h2>
                 <div class="add-task">
                     <input type="text" id="newTask" placeholder="Enter new task">
+                    <select id="taskDays" multiple>
+                        <!-- Options will be populated dynamically -->
+                    </select>
                     <button onclick="addTask()">Add Task</button>
                 </div>
             </div>
@@ -355,30 +389,65 @@
             document.getElementById('authContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
             initializeSwiper();
+            populateTaskDays();
             loadTasks();
+        }
+
+        // Populate the days of the current month in the select dropdown
+        function populateTaskDays() {
+            const taskDaysSelect = document.getElementById('taskDays');
+            taskDaysSelect.innerHTML = ''; // Clear existing options
+
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateString = date.toISOString().slice(0, 10);
+
+                const option = document.createElement('option');
+                option.value = dateString;
+                option.textContent = dateString;
+                if (day === currentDate.getDate()) {
+                    option.selected = true;
+                }
+
+                taskDaysSelect.appendChild(option);
+            }
         }
 
         // Initialize Swiper
         function initializeSwiper() {
             swiper = new Swiper('.swiper-container', {
-                slidesPerView: 1,
+                slidesPerView: 5,
                 spaceBetween: 10,
                 centeredSlides: true,
+                initialSlide: new Date().getDate() - 1,
             });
         }
 
         // Add Task Function
         function addTask() {
             const taskText = document.getElementById('newTask').value.trim();
+            const selectedOptions = Array.from(document.getElementById('taskDays').selectedOptions);
+            const days = selectedOptions.map(option => option.value);
+
             if (!taskText) {
                 alert('Please enter a task.');
                 return;
             }
-            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+            if (days.length === 0) {
+                alert('Please select at least one day.');
+                return;
+            }
+
             fetch('/tasks', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ task: taskText, day: today })
+                body: JSON.stringify({ task: taskText, days })
             })
             .then(response => response.json())
             .then(data => {
@@ -403,31 +472,45 @@
             const tasksContainer = document.getElementById('tasks-container');
             tasksContainer.innerHTML = ''; // Clear existing tasks
 
-            const days = Object.keys(tasksData).sort(); // Get days and sort them
-            days.forEach(day => {
-                const dayTasks = tasksData[day];
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+            const slides = [];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateString = date.toISOString().slice(0, 10);
+                const dayTasks = tasksData[dateString] || [];
+
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
 
                 const dayTitle = document.createElement('h3');
-                dayTitle.textContent = day;
+                dayTitle.textContent = dateString;
                 slide.appendChild(dayTitle);
 
                 const taskList = document.createElement('ul');
                 dayTasks.forEach(task => {
                     const taskItem = document.createElement('li');
                     taskItem.textContent = task.text;
-                    taskItem.style.textDecoration = task.completed ? 'line-through' : 'none';
+                    taskItem.className = task.completed ? 'completed' : '';
                     taskItem.addEventListener('click', () => {
-                        toggleTaskCompletion(day, task.id, !task.completed);
+                        toggleTaskCompletion(dateString, task.id, !task.completed);
                     });
                     taskList.appendChild(taskItem);
                 });
                 slide.appendChild(taskList);
-                tasksContainer.appendChild(slide);
-            });
+                slides.push(slide);
+            }
+
+            slides.forEach(slide => tasksContainer.appendChild(slide));
 
             swiper.update(); // Update Swiper after modifying slides
+
+            // Set the initial slide to today's date
+            swiper.slideTo(currentDate.getDate() - 1, 0);
 
             // Update charts
             updateCharts(tasksData);
@@ -449,17 +532,24 @@
 
         // Update Charts
         function updateCharts(tasksData) {
-            // Number of Tasks Completed Chart
-            const days = Object.keys(tasksData).sort();
-            const tasksCompleted = days.map(day => {
-                const dayTasks = tasksData[day];
-                return dayTasks.filter(task => task.completed).length;
-            });
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-            const tasksTotal = days.map(day => {
-                const dayTasks = tasksData[day];
-                return dayTasks.length;
-            });
+            const days = [];
+            const tasksCompleted = [];
+            const tasksTotal = [];
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(currentYear, currentMonth, day);
+                const dateString = date.toISOString().slice(0, 10);
+                days.push(dateString);
+
+                const dayTasks = tasksData[dateString] || [];
+                tasksTotal.push(dayTasks.length);
+                tasksCompleted.push(dayTasks.filter(task => task.completed).length);
+            }
 
             // Update Number of Tasks Completed Chart
             if (window.tasksCompletedChart) {
@@ -529,7 +619,6 @@
             })
             .catch(error => console.error('Error:', error));
         };
-
     </script>
 </body>
 </html>
