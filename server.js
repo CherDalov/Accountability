@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-const fs = require('fs');
 const path = require('path');
 
 const app = express();
@@ -23,6 +22,9 @@ app.use(session({
 // In-memory storage for users and tasks (use a database in production)
 let users = [];
 let tasks = {};
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Register endpoint
 app.post('/register', (req, res) => {
@@ -67,7 +69,7 @@ app.get('/isAuthenticated', (req, res) => {
     }
 });
 
-// Task management remains the same
+// Add a new task
 app.post('/tasks', (req, res) => {
     const { task, day } = req.body;
     const user = req.session.user;
@@ -89,6 +91,7 @@ app.post('/tasks', (req, res) => {
     res.status(201).json(newTask);
 });
 
+// Get all tasks
 app.get('/tasks', (req, res) => {
     const user = req.session.user;
 
@@ -97,6 +100,27 @@ app.get('/tasks', (req, res) => {
     }
 
     res.json(tasks[user] || {});
+});
+
+// Update task status
+app.put('/tasks/:day/:taskId', (req, res) => {
+    const { day, taskId } = req.params;
+    const { completed } = req.body;
+    const user = req.session.user;
+
+    if (!user) {
+        return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    if (tasks[user] && tasks[user][day]) {
+        const task = tasks[user][day].find(t => t.id === parseInt(taskId));
+        if (task) {
+            task.completed = completed;
+            return res.json({ success: true });
+        }
+    }
+
+    res.status(404).json({ message: 'Task not found' });
 });
 
 // Start the server
