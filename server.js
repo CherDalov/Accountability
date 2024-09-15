@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
@@ -9,22 +10,21 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware to parse incoming JSON requests
 app.use(express.json());
-app.use(cors());
 
 // Session management middleware
 app.use(session({
-    secret: 'yourSecretKey',
+    secret: 'yourSecretKey', // Replace with your own secret in production
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set to true in production when using HTTPS
+    cookie: { secure: false } // Set to true if using HTTPS
 }));
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // In-memory storage for users and tasks (use a database in production)
 let users = [];
 let tasks = {};
-
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Register endpoint
 app.post('/register', (req, res) => {
@@ -69,9 +69,9 @@ app.get('/isAuthenticated', (req, res) => {
     }
 });
 
-// Add a new task
+// Add a new task to multiple days
 app.post('/tasks', (req, res) => {
-    const { task, day } = req.body;
+    const { task, days } = req.body; // 'days' is an array of dates
     const user = req.session.user;
 
     if (!user) {
@@ -82,13 +82,15 @@ app.post('/tasks', (req, res) => {
         tasks[user] = {};
     }
 
-    if (!tasks[user][day]) {
-        tasks[user][day] = [];
-    }
+    days.forEach(day => {
+        if (!tasks[user][day]) {
+            tasks[user][day] = [];
+        }
+        const newTask = { id: tasks[user][day].length + 1, text: task, completed: false };
+        tasks[user][day].push(newTask);
+    });
 
-    const newTask = { id: tasks[user][day].length + 1, text: task, completed: false };
-    tasks[user][day].push(newTask);
-    res.status(201).json(newTask);
+    res.status(201).json({ success: true });
 });
 
 // Get all tasks
@@ -123,7 +125,12 @@ app.put('/tasks/:day/:taskId', (req, res) => {
     res.status(404).json({ message: 'Task not found' });
 });
 
+// Catch-all route to serve index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
