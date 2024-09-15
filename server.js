@@ -24,7 +24,7 @@ let users = [];
 let tasks = {};
 
 // Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'main')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Register endpoint
 app.post('/register', (req, res) => {
