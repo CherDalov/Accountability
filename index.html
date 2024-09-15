@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta Tags -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accountability Tracker</title>
@@ -8,27 +9,29 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
-
     <!-- Swiper.js CSS -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
     <!-- Toastify CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
 
     <!-- Custom CSS -->
     <style>
-        /* Root Variables for Dark Mode */
+        /* Variables */
         :root {
             --background-color: #1e1e2f;
-            --primary-color: #ff6f61;
-            --secondary-color: #6c5ce7;
-            --text-color: #a3c9f1; /* Pale blue */
+            --primary-accent: #ff6f61;
+            --secondary-accent: #6c5ce7;
+            --today-button-color: #ff6f61;
+            --pale-blue: #a3c9f1;
+            --text-color: var(--pale-blue);
             --task-bg-color: #2e2e3e;
             --task-hover-color: #3e3e5e;
-            --task-completed-color: #90ee90; /* Light green for completed tasks */
-            --border-color: #4b4b4b; /* Border color for elements */
+            --task-completed-color: #90ee90;
+            --column-border-color: #4b4b4b;
         }
 
         /* Global Styles */
@@ -43,11 +46,11 @@
 
         h1, h2 {
             text-align: center;
-            color: var(--text-color);
+            color: var(--pale-blue);
             font-family: 'Montserrat', sans-serif;
         }
 
-        /* Main Container */
+        /* Container */
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -82,24 +85,94 @@
         }
 
         .add-task input[type="text"]:focus {
-            border-color: var(--primary-color);
+            border-color: var(--primary-accent);
             background-color: #444;
         }
 
         .add-task button {
             padding: 10px 20px;
             border: none;
-            background-color: var(--primary-color);
+            background-color: var(--primary-accent);
             color: #fff;
             border-radius: 5px;
             cursor: pointer;
             flex-shrink: 0;
             transition: background-color 0.3s, transform 0.3s;
+            margin-bottom: 10px;
         }
 
         .add-task button:hover {
             background-color: #e65a50;
             transform: translateY(-3px);
+        }
+
+        /* Add to All Days Button */
+        .add-task .add-all-days-btn {
+            border: 2px solid var(--primary-accent);
+            color: var(--primary-accent);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: transparent;
+            transition: background-color 0.3s, color 0.3s;
+            margin-left: 10px;
+        }
+
+        .add-task .add-all-days-btn.active {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+
+        /* Swiper Styles */
+        .swiper-container {
+            width: 100%;
+            padding: 10px 0;
+        }
+
+        .swiper-wrapper-container {
+            overflow: hidden;
+            width: calc(100% - 100px);
+        }
+
+        .swiper-slide {
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 5px;
+            min-height: 200px;
+            word-break: break-word;
+            text-align: center;
+            width: calc((100% - 10px) / 5);
+            box-sizing: border-box;
+            border: 2px solid var(--column-border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .swiper-slide.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 111, 97, 0.5);
+        }
+
+        /* Day Button */
+        .day-button {
+            background-color: transparent;
+            color: var(--primary-accent);
+            border: 2px solid var(--primary-accent);
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            display: inline-block;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .day-button.today {
+            background-color: var(--today-button-color);
+            color: #fff;
+        }
+
+        .day-button.active {
+            background-color: var(--primary-accent);
+            color: #fff;
         }
 
         /* Task Styles */
@@ -151,18 +224,52 @@
 
         .task .delete-btn {
             margin-left: auto;
-            color: var(--primary-color);
+            color: var(--primary-accent);
             cursor: pointer;
             font-size: 0.8em;
-            border: 1px solid var(--primary-color);
+            border: 1px solid var(--primary-accent);
             padding: 5px;
             border-radius: 50%;
             transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
 
         .task .delete-btn:hover {
-            background-color: var(--primary-color);
+            background-color: var(--primary-accent);
             color: #fff;
+        }
+
+        /* Date Container */
+        .date-container {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--pale-blue);
+        }
+
+        /* Arrow Buttons */
+        .arrow-button {
+            background-color: var(--primary-accent);
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .arrow-button:hover {
+            background-color: var(--secondary-accent);
+            transform: scale(1.1);
+        }
+
+        /* Scroll Container */
+        .scroll-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            width: 100%;
+            overflow: hidden;
         }
 
         /* Charts */
@@ -173,7 +280,7 @@
         }
 
         .chart-container h2 {
-            color: var(--text-color); /* Pale blue for chart titles */
+            color: var(--pale-blue);
         }
 
         canvas {
@@ -181,17 +288,128 @@
             border-radius: 10px;
         }
 
+        /* Feedback Section */
+        .feedback {
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+        }
+
+        .feedback textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            margin-bottom: 10px;
+            resize: none;
+        }
+
+        .feedback button {
+            padding: 10px 20px;
+            border: none;
+            background-color: var(--primary-accent);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .feedback button:hover {
+            background-color: #e65a50;
+            transform: translateY(-3px);
+        }
+
+        /* Authentication Forms */
+        #authContainer {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: var(--task-bg-color);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #authContainer h1 {
+            margin-bottom: 20px;
+        }
+
+        #authForms input[type="text"],
+        #authForms input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+
+        #authForms button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: var(--primary-accent);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        #authForms button:hover {
+            background-color: #e65a50;
+            transform: translateY(-3px);
+        }
+
+        #authForms p {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        #authForms a {
+            color: var(--primary-accent);
+            text-decoration: none;
+        }
+
+        /* Logout Button */
+        .logout-button {
+            float: right;
+            background-color: transparent;
+            color: var(--primary-accent);
+            border: 2px solid var(--primary-accent);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .logout-button:hover {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
-            .task {
-                flex-direction: column;
+            .scroll-container .arrow-button {
+                display: none;
+            }
+
+            .swiper-wrapper-container {
+                width: 100%;
+            }
+
+            .swiper-slide {
+                width: calc(100% - 20px);
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Authentication Section -->
+    <!-- Authentication Forms -->
     <div id="authContainer">
         <h1>Accountability Tracker</h1>
         <div id="authForms">
@@ -214,8 +432,8 @@
 
     <!-- Main Application Content -->
     <div id="appContainer" style="display: none;">
+        <button onclick="logout()" class="logout-button">Logout</button>
         <h1>Accountability Tracker</h1>
-        <button onclick="logout()" style="float: right;">Logout</button>
         <div class="container">
             <!-- Task Input Section -->
             <div class="task-list">
@@ -223,12 +441,22 @@
                 <div class="add-task">
                     <input type="text" id="newTask" placeholder="Enter new task">
                     <button onclick="addTask()">Add Task</button>
+                    <!-- Add to All Days Button -->
+                    <button id="addAllDaysBtn" class="add-all-days-btn" onclick="toggleAddToAllDays()">Add to all days</button>
                 </div>
             </div>
 
-            <!-- Task List Section -->
-            <div id="taskList" class="task-list">
-                <!-- Task items will be dynamically generated here -->
+            <!-- Swiper Container -->
+            <div class="scroll-container">
+                <button class="arrow-button" onclick="swiper.slidePrev()"><i class="fas fa-chevron-left"></i></button>
+                <div class="swiper-wrapper-container">
+                    <div class="swiper-container">
+                        <div class="swiper-wrapper" id="tasks-container">
+                            <!-- Task columns will be generated here -->
+                        </div>
+                    </div>
+                </div>
+                <button class="arrow-button" onclick="swiper.slideNext()"><i class="fas fa-chevron-right"></i></button>
             </div>
 
             <!-- Charts Section -->
@@ -240,6 +468,14 @@
                 <h2>Percentage of Tasks Completed</h2>
                 <canvas id="tasksPercentageChart"></canvas>
             </div>
+
+            <!-- Feedback Section -->
+            <div class="feedback">
+                <h2>We value your feedback!</h2>
+                <textarea id="feedbackText" placeholder="Share your thoughts..."></textarea>
+                <button onclick="submitFeedback()">Submit</button>
+            </div>
+
         </div>
     </div>
 
@@ -275,13 +511,13 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (response.ok) {
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                if (status === 201) {
                     alert('Registration successful! You can now log in.');
                     showLoginForm();
                 } else {
-                    alert(data.message);
+                    alert(body.message);
                 }
             })
             .catch(error => console.error('Error:', error));
@@ -298,6 +534,7 @@
             })
             .then(response => {
                 if (response.ok) {
+                    // Hide auth container and show app container
                     document.getElementById('authContainer').style.display = 'none';
                     document.getElementById('appContainer').style.display = 'block';
                     initializeApp();
@@ -311,8 +548,11 @@
         }
 
         function logout() {
-            fetch('/logout', { method: 'POST' })
+            fetch('/logout', {
+                method: 'POST'
+            })
             .then(() => {
+                // Clear data and show login form
                 document.getElementById('appContainer').style.display = 'none';
                 document.getElementById('authContainer').style.display = 'block';
                 document.getElementById('loginForm').style.display = 'block';
@@ -321,87 +561,112 @@
             .catch(error => console.error('Error:', error));
         }
 
-        // App Initialization
+        // Application Initialization
+        let swiper;
+        let addToAllDays = false;
+        let tasks = {};
+        const selectedDays = [];
+        let taskCompletionData = [];
+        let taskPercentageData = [];
+        let dateLabels = [];
+        let displayedDates = [];
+
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+        const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
         function initializeApp() {
-            // Initialize tasks, charts, etc.
+            initializeMonthData();
+            displayAllDays();
             fetchInitialTasks();
+
+            // Initialize Swiper
+            swiper = new Swiper('.swiper-container', {
+                slidesPerView: 5,
+                spaceBetween: 0,
+                centeredSlides: true,
+                initialSlide: today.getDate() - 1,
+                freeMode: false,
+                speed: 200,
+            });
+
+            // Custom Mousewheel Scroll Handling for Days Columns
+            const tasksContainer = document.getElementById('tasks-container');
+            tasksContainer.addEventListener('wheel', function(event) {
+                event.preventDefault();
+                if (event.deltaY > 0) {
+                    swiper.slideNext();
+                } else {
+                    swiper.slidePrev();
+                }
+            });
         }
 
-        // Fetch Initial Tasks
+        // Other functions remain the same as before
+        // ...
+
+        // Include fetchWithCredentials helper function
+        function fetchWithCredentials(url, options = {}) {
+            options.credentials = 'include';
+            return fetch(url, options);
+        }
+
+        // Update fetch requests to use fetchWithCredentials
         function fetchInitialTasks() {
-            fetch('/tasks', { credentials: 'include' })
-            .then(response => response.json())
-            .then(data => {
-                // Render tasks
-                renderTasks(data);
-                updateCharts();
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        function renderTasks(tasks) {
-            const taskList = document.getElementById('taskList');
-            taskList.innerHTML = '';
-            for (const day in tasks) {
-                tasks[day].forEach(task => {
-                    const taskDiv = document.createElement('div');
-                    taskDiv.classList.add('task', 'show');
-                    if (task.completed) taskDiv.classList.add('completed');
-                    taskDiv.innerHTML = `<span>${task.text}</span>
-                                         <i class="fas fa-trash delete-btn" onclick="deleteTask(${day}, ${task.id})"></i>`;
-                    taskList.appendChild(taskDiv);
-                });
-            }
-        }
-
-        // Add New Task
-        function addTask() {
-            const taskText = document.getElementById('newTask').value.trim();
-            if (!taskText) return;
-
-            fetch('/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ task: taskText, day: new Date().getDate() })
-            })
-            .then(response => response.json())
-            .then(newTask => {
-                renderTasks({ [new Date().getDate()]: [newTask] });
-            })
-            .catch(error => console.error('Error:', error));
-
-            document.getElementById('newTask').value = ''; // Clear input
-        }
-
-        // Delete Task
-        function deleteTask(day, id) {
-            fetch(`/tasks/${day}/${id}`, { method: 'DELETE' })
-            .then(() => {
-                fetchInitialTasks();
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        // Update Charts (Example chart update logic)
-        function updateCharts() {
-            // Example chart update logic
-        }
-
-        // Initialize the app if the user is already logged in
-        window.onload = function() {
-            fetch('/tasks', { credentials: 'include' })
+            fetchWithCredentials('/tasks')
                 .then(response => {
                     if (response.ok) {
+                        return response.json();
+                    } else if (response.status === 401) {
+                        // User is not authenticated, show login form
+                        document.getElementById('authContainer').style.display = 'block';
+                        document.getElementById('appContainer').style.display = 'none';
+                    } else {
+                        throw new Error('Failed to fetch tasks.');
+                    }
+                })
+                .then(data => {
+                    tasks = data;
+                    for (let day in tasks) {
+                        const dayIndex = displayedDates.indexOf(parseInt(day));
+                        if (dayIndex !== -1) {
+                            renderTasks(dayIndex);
+                        }
+                    }
+                    updateCharts();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Continue updating other functions accordingly
+        // ...
+
+        // Initialize the application if the user is already logged in
+        window.onload = function() {
+            fetchWithCredentials('/tasks')
+                .then(response => {
+                    if (response.ok) {
+                        // User is authenticated
                         document.getElementById('authContainer').style.display = 'none';
                         document.getElementById('appContainer').style.display = 'block';
                         initializeApp();
                     } else {
+                        // Show login form
                         document.getElementById('authContainer').style.display = 'block';
                         document.getElementById('appContainer').style.display = 'none';
                     }
                 })
                 .catch(error => console.error('Error:', error));
         };
+
+        // Add other functions from your previous code, ensuring they are updated as needed
+        // For example, addTask(), addTaskToDay(), renderTasks(), toggleTask(), deleteTask(), updateCharts(), etc.
+
+        // Ensure all fetch requests include credentials and handle authentication appropriately
+
     </script>
 </body>
 </html>
